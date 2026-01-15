@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;

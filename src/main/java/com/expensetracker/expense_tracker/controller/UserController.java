@@ -1,7 +1,7 @@
 package com.expensetracker.expense_tracker.controller;
 
 import com.expensetracker.expense_tracker.entity.User;
-import com.expensetracker.expense_tracker.service.UserService;
+import com.expensetracker.expense_tracker.service.UerService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -9,9 +9,9 @@ import java.util.List;
 @RestController
 @RequestMapping("api/users")
 public class UserController {
-    private final UserService userService;
+    private final UerService userService;
 
-    public UserController(UserService userService) {
+    public UserController(UerService userService) {
         this.userService = userService;
     }
     @PostMapping
