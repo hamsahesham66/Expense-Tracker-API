@@ -3,11 +3,13 @@ package com.expensetracker.expense_tracker.controller;
 import com.expensetracker.expense_tracker.entity.Expense;
 import com.expensetracker.expense_tracker.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,11 +33,16 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Expense>> getUserExpenses(@RequestParam(required = false) String period,
+    public ResponseEntity<Map<String, Object>>getUserExpenses(@RequestParam(required = false) String period,
                                                          @RequestParam(required = false) LocalDate startDate,
-                                                         @RequestParam(required = false) LocalDate endDate) {
-        List<Expense> expenses = expenseService.getAllUserExpenses(period, startDate, endDate);
-        return ResponseEntity.ok(expenses);
+                                                         @RequestParam(required = false) LocalDate endDate,
+    @                                                    RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "10") int size) {
+        Page<Expense> expensePage = expenseService.getAllUserExpenses(period, startDate, endDate, page, size);
+        Map<String, Object> response = new HashMap<>();
+        response.put("count", expensePage.getTotalElements());
+        response.put("expenses", expensePage.getContent());
+        return ResponseEntity.ok(response);
     }
     @DeleteMapping("/{expenseId}")
     public ResponseEntity<?> delete(@PathVariable Long expenseId ){
@@ -45,8 +52,8 @@ public class ExpenseController {
     @PatchMapping("/{expenseId}")
     public ResponseEntity<Expense> updateExpense(@PathVariable Long expenseId,
                                                     @RequestBody Expense expense){
-       Expense saved= expenseService.updateUserExpense(expenseId,expense);
-        return ResponseEntity.status(HttpStatus.OK).body(saved);
+       Expense updated= expenseService.updateUserExpense(expenseId,expense);
+        return ResponseEntity.status(HttpStatus.OK).body(updated);
 
     }
 

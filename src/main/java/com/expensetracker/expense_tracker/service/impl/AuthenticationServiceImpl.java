@@ -6,11 +6,14 @@ import com.expensetracker.expense_tracker.dto.AuthenticationResponse;
 import com.expensetracker.expense_tracker.dto.RegisterRequest;
 import com.expensetracker.expense_tracker.entity.Role;
 import com.expensetracker.expense_tracker.entity.User;
+import com.expensetracker.expense_tracker.exception.BadRequestException;
+import com.expensetracker.expense_tracker.exception.ResourceNotFoundException;
 import com.expensetracker.expense_tracker.repository.UserRepository;
 import com.expensetracker.expense_tracker.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +27,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public AuthenticationResponse register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("User with this email already exists");
+            throw new BadRequestException("User with this email already exists");
         }
         var user= User.builder()
                 .fullName(request.getFullName())
@@ -44,13 +47,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        } catch (AuthenticationException ex) {
+            throw new BadRequestException("Invalid email or password");
+        }
         var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow();
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found with email: " + request.getEmail()));
         var jwtToken=jwtService.generateToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
