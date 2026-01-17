@@ -1,5 +1,8 @@
 package com.expensetracker.expense_tracker.service.impl;
 
+import com.expensetracker.expense_tracker.dto.ExpenseMapper;
+import com.expensetracker.expense_tracker.dto.ExpenseRequest;
+import com.expensetracker.expense_tracker.dto.ExpenseResponse;
 import com.expensetracker.expense_tracker.entity.Category;
 import com.expensetracker.expense_tracker.entity.Expense;
 import com.expensetracker.expense_tracker.entity.User;
@@ -32,30 +35,32 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final UserService userService;
+    private final ExpenseMapper expenseMapper;
 
     @Override
-    public Expense createExpense(Expense expense, Long categoryId) {
-        if (expense == null) {
+    public ExpenseResponse createExpense(ExpenseRequest request) {
+        User user = userService.getCurrentUser();
+
+        if (request == null) {
             throw new BadRequestException("Expense data is required");
         }
-        if (expense.getAmount() == null || expense.getAmount().doubleValue() <= 0.0) {
-            throw new BadRequestException("Amount must be greater than zero");
-        }
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + request.getCategoryId()));
 
-        User user = userService.getCurrentUser();
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: "+categoryId));
+        Expense expense = expenseMapper.toEntity(request);
         expense.setUser(user);
         expense.setCategory(category);
-        return expenseRepository.save(expense);
+        Expense savedExpense = expenseRepository.save(expense);
+
+        return expenseMapper.toResponse(savedExpense);
     }
 
     @Override
-    public Page<Expense> getAllUserExpenses(String period, LocalDate start, LocalDate end, int page, int size) {
+    public Page<ExpenseResponse> getAllUserExpenses(String period, LocalDate start, LocalDate end, int page, int size) {
         User user = userService.getCurrentUser();
         Pageable pageable = PageRequest.of(page, size, Sort.by("expenseDate").descending());
         if (period == null || period.isEmpty()) {
-            return expenseRepository.findByUser(user,pageable);
+            return expenseRepository.findByUser(user, pageable).map((expenseMapper::toResponse));
         }
         LocalDate startDate;
         LocalDate endDate = LocalDate.now();
@@ -81,9 +86,11 @@ public class ExpenseServiceImpl implements ExpenseService {
                 break;
 
             default:
-                return expenseRepository.findByUser(user,pageable);
+                return expenseRepository.findByUser(user, pageable)
+                        .map(expenseMapper::toResponse);
         }
-        return expenseRepository.findByUserAndExpenseDateBetween(user, startDate, endDate,pageable);
+        return expenseRepository.findByUserAndExpenseDateBetween(user, startDate, endDate, pageable)
+                .map(expenseMapper::toResponse);
     }
 
     @Override
@@ -96,29 +103,33 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public Expense updateUserExpense(Long expenseId, Expense expenseReq) {
-        if (expenseReq == null) {
-            throw new BadRequestException("Update data is required");
-        }
-
+    public ExpenseResponse updateUserExpense(Long expenseId, ExpenseRequest request) {
         User user = userService.getCurrentUser();
         Expense expense = expenseRepository.findByIdAndUser(expenseId, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found or access denied"));
-        if (expenseReq.getAmount() != null) {
-            if (expenseReq.getAmount().doubleValue() <= 0.0) {
+
+        if (request.getAmount() != null) {
+            if (request.getAmount().doubleValue() <= 0) {
                 throw new BadRequestException("Amount must be greater than zero");
             }
-            expense.setAmount(expenseReq.getAmount());
+            expense.setAmount(request.getAmount());
         }
-        if (expenseReq.getDescription() != null) {
-            expense.setDescription(expenseReq.getDescription().trim());
+        if (request.getDescription() != null) {
+            expense.setDescription(request.getDescription().trim());
         }
-        if (expenseReq.getCategoryId() != null) {
-            Category category = categoryRepository.findById(expenseReq.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category not found "+expenseReq.getCategoryId()));
-            expense.setCategory(category);
+        if (request.getExpenseDate() != null) {
+            expense.setExpenseDate(request.getExpenseDate());
         }
 
-        return expenseRepository.save(expense);
+        if (request.getCategoryId() != null) {
+            if (!expense.getCategory().getId().equals(request.getCategoryId())) {
+                Category category = categoryRepository.findById(request.getCategoryId())
+                        .orElseThrow(() -> new EntityNotFoundException("Category not found with ID: " + request.getCategoryId()));
+                expense.setCategory(category);
+            }
+        }
+
+        Expense savedExpense = expenseRepository.save(expense);
+        return expenseMapper.toResponse(savedExpense);
     }
 }

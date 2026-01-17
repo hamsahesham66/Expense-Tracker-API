@@ -1,7 +1,10 @@
 package com.expensetracker.expense_tracker.controller;
 
+import com.expensetracker.expense_tracker.dto.ExpenseRequest;
+import com.expensetracker.expense_tracker.dto.ExpenseResponse;
 import com.expensetracker.expense_tracker.entity.Expense;
 import com.expensetracker.expense_tracker.service.ExpenseService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -26,33 +29,33 @@ public class ExpenseController {
      * Body: { "categoryId":1,"amount": 120.00, "description":"food"}
      */
     @PostMapping
-    public ResponseEntity<Expense> create(@RequestBody Expense expense){
-        
-        Expense saved = expenseService.createExpense(expense, expense.getCategoryId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    public ResponseEntity<ExpenseResponse> create(@Valid @RequestBody ExpenseRequest request){
+
+        ExpenseResponse newExpense = expenseService.createExpense(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newExpense);
     }
 
     @GetMapping
     public ResponseEntity<Map<String, Object>>getUserExpenses(@RequestParam(required = false) String period,
                                                          @RequestParam(required = false) LocalDate startDate,
                                                          @RequestParam(required = false) LocalDate endDate,
-    @                                                    RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "10") int size) {
-        Page<Expense> expensePage = expenseService.getAllUserExpenses(period, startDate, endDate, page, size);
+        Page<ExpenseResponse> expensePage = expenseService.getAllUserExpenses(period, startDate, endDate, page, size);
         Map<String, Object> response = new HashMap<>();
         response.put("count", expensePage.getTotalElements());
         response.put("expenses", expensePage.getContent());
         return ResponseEntity.ok(response);
     }
     @DeleteMapping("/{expenseId}")
-    public ResponseEntity<?> delete(@PathVariable Long expenseId ){
+    public ResponseEntity<Void> delete(@PathVariable Long expenseId ){
         expenseService.deleteExpense(expenseId);
         return ResponseEntity.noContent().build();
     }
     @PatchMapping("/{expenseId}")
-    public ResponseEntity<Expense> updateExpense(@PathVariable Long expenseId,
-                                                    @RequestBody Expense expense){
-       Expense updated= expenseService.updateUserExpense(expenseId,expense);
+    public ResponseEntity<ExpenseResponse> updateExpense(@PathVariable Long expenseId,
+                                                  @RequestBody ExpenseRequest request){
+       ExpenseResponse updated= expenseService.updateUserExpense(expenseId,request);
         return ResponseEntity.status(HttpStatus.OK).body(updated);
 
     }
