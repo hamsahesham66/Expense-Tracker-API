@@ -1,5 +1,6 @@
 package com.expensetracker.expense_tracker.service;
 
+import com.expensetracker.expense_tracker.dto.ExpenseCategorySummary;
 import com.expensetracker.expense_tracker.dto.ExpenseRequest;
 import com.expensetracker.expense_tracker.dto.ExpenseResponse;
 import com.expensetracker.expense_tracker.entity.Expense;
@@ -13,5 +14,6 @@ public interface ExpenseService {
     Page<ExpenseResponse> getAllUserExpenses(String period, LocalDate start, LocalDate End, int page, int size);
      void deleteExpense(Long expenseId);
     ExpenseResponse updateUserExpense(Long expenseId,ExpenseRequest request);
-
+    List<ExpenseCategorySummary> getExpenseSummary(String period, LocalDate start, LocalDate end
+    );
 }

@@ -1,5 +1,6 @@
 package com.expensetracker.expense_tracker.service.impl;
 
+import com.expensetracker.expense_tracker.dto.ExpenseCategorySummary;
 import com.expensetracker.expense_tracker.dto.ExpenseMapper;
 import com.expensetracker.expense_tracker.dto.ExpenseRequest;
 import com.expensetracker.expense_tracker.dto.ExpenseResponse;
@@ -32,7 +33,6 @@ import java.util.List;
 public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
-    private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final UserService userService;
     private final ExpenseMapper expenseMapper;
@@ -132,4 +132,39 @@ public class ExpenseServiceImpl implements ExpenseService {
         Expense savedExpense = expenseRepository.save(expense);
         return expenseMapper.toResponse(savedExpense);
     }
+
+    @Override
+    public List<ExpenseCategorySummary> getExpenseSummary(String period, LocalDate start, LocalDate end) {
+        User user = userService.getCurrentUser();
+        LocalDate startDate;
+        LocalDate endDate = LocalDate.now();
+        if (period == null || period.isEmpty()) {
+            startDate = LocalDate.now().minusMonths(1); // default
+        } else {
+            switch (period.toLowerCase()) {
+                case "week":
+                    startDate = LocalDate.now().minusWeeks(1);
+                    break;
+                case "month":
+                    startDate = LocalDate.now().minusMonths(1);
+                    break;
+                case "3months":
+                    startDate = LocalDate.now().minusMonths(3);
+                    break;
+                case "custom":
+                    if (start == null || end == null) {
+                        throw new IllegalArgumentException(
+                                "Start and end dates are required for custom period"
+                        );
+                    }
+                    startDate = start;
+                    endDate = end;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid period value");
+            }
+        }
+        return expenseRepository.getCategoryStats(user, startDate, endDate);
+    }
+
 }

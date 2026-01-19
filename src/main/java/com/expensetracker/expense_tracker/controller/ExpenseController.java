@@ -1,9 +1,11 @@
 package com.expensetracker.expense_tracker.controller;
 
+import com.expensetracker.expense_tracker.dto.ExpenseCategorySummary;
 import com.expensetracker.expense_tracker.dto.ExpenseRequest;
 import com.expensetracker.expense_tracker.dto.ExpenseResponse;
 import com.expensetracker.expense_tracker.entity.Expense;
 import com.expensetracker.expense_tracker.service.ExpenseService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -59,5 +61,15 @@ public class ExpenseController {
         return ResponseEntity.status(HttpStatus.OK).body(updated);
 
     }
+    @Operation(summary = "Get expense summary grouped by category",
+            description = "Returns total spending per category for the current user")
+
+    @GetMapping("/summary")
+    public ResponseEntity<List<ExpenseCategorySummary>> getCategoryStats(@RequestParam(required = false) String period,
+                                                                         @RequestParam(required = false) LocalDate startDate,
+                                                                         @RequestParam(required = false) LocalDate endDate){
+        return ResponseEntity.ok(expenseService.getExpenseSummary(period,startDate,endDate));
+    }
+
 
 }
