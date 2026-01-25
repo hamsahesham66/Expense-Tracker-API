@@ -24,6 +24,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -167,4 +169,35 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseRepository.getCategoryStats(user, startDate, endDate);
     }
 
+    @Override
+    public void exportExpensesToCsv(Writer writer) {
+        User user = userService.getCurrentUser();
+        List<Expense> expenses = expenseRepository.findByUserId(user.getId());
+        try (PrintWriter printWriter = new PrintWriter(writer)) {
+            // 2. Write the CSV Header
+            printWriter.println("ID,Amount,Description,Category,Date");
+
+            // 3. Write each expense as a row
+            for (Expense expense : expenses) {
+                printWriter.printf("%d,%s,%s,%s,%s%n",
+                        expense.getId(),
+                        expense.getAmount(),
+                        escapeCsv(expense.getDescription()),
+                        expense.getCategory().getCategoryName(),
+                        expense.getExpenseDate()
+                );
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error while writing CSV", e);
+        }
+
+    }
+
+    private String escapeCsv(String data) {
+        if (data == null) return "";
+        if (data.contains(",") || data.contains("\n")) {
+            return "\"" + data.replace("\"", "\"\"") + "\"";
+        }
+        return data;
+    }
 }
