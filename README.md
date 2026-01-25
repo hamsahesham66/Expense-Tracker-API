@@ -29,13 +29,16 @@ The project focuses on clean backend architecture, security, and real-world busi
 The application follows a **Layered Architecture** based on the **MVC** pattern, promoting separation of concerns and maintainability.
 
 ### 🔄 Data Flow
+
 ```mermaid
 graph LR
     A[Client] <--> B[Controller]
     B <--> C[Service Layer]
     C <--> D[Repository]
     D <--> E[Database]
+```
 
+```text
 src/main/java/com/expensetracker
 ├── 🌐 controller   → API Layer: Handles HTTP requests & input validation.
 ├── 🧠 service      → Business Layer: Core logic & data processing.
@@ -44,3 +47,4 @@ src/main/java/com/expensetracker
 ├── 📨 dto          → DTOs: Secure data transfer objects (decoupling API from Entity).
 ├── 🛡️ config       → Config: JWT filters, Authentication Managers, and Config.
 └── ⚠️ exception    → Error Handling: Global advice for standardized API errors.
+```
