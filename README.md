@@ -5,7 +5,7 @@ The project focuses on clean backend architecture, security, and real-world busi
 
 ![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge&logo=java)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3-brightgreen?style=for-the-badge&logo=spring)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue?style=for-the-badge&logo=postgresql)
 ![Swagger](https://img.shields.io/badge/Swagger-UI-85EA2D?style=for-the-badge&logo=swagger)
 
 ## 🚀 Key Features
@@ -30,7 +30,12 @@ The application follows a **Layered Architecture** based on the **MVC** pattern,
 
 ### 🔄 Data Flow
 ```mermaid
-[Client] <--> [Controller] <--> [Service Layer] <--> [Repository] <--> [Database]
+graph LR
+    A[Client] <--> B[Controller]
+    B <--> C[Service Layer]
+    C <--> D[Repository]
+    D <--> E[Database]
+
 src/main/java/com/expensetracker
 ├── 🌐 controller   → API Layer: Handles HTTP requests & input validation.
 ├── 🧠 service      → Business Layer: Core logic & data processing.
