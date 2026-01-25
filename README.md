@@ -48,3 +48,48 @@ src/main/java/com/expensetracker
 ├── 🛡️ config       → Config: JWT filters, Authentication Managers, and Config.
 └── ⚠️ exception    → Error Handling: Global advice for standardized API errors.
 ```
+## 📦 How to Run
+
+Follow these steps to get the application running on your local machine.
+
+### Prerequisites
+- Java 17 or higher
+- Maven (Apache Maven 3.6+)
+- PostgreSQL (installed locally or via cloud provider)
+
+### Step 1 — Clone the repository
+```bash
+git clone https://github.com/hamsahesham66/Expense-Tracker-API.git
+cd Expense-Tracker-API
+```
+
+### Step 2 — Configure the database
+Create a PostgreSQL database named `expense_tracker`, then update connection details in:
+`src/main/resources/application.properties`
+
+Example:
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/expense_tracker
+spring.datasource.username=postgres
+spring.datasource.password=YOUR_ACTUAL_PASSWORD_HERE
+spring.jpa.hibernate.ddl-auto=update
+```
+
+> Tip: For tests use `src/test/resources/application-test.properties` with an in-memory H2 DB.
+
+### Step 3 — Run the application
+From the project root:
+```bash
+./mvnw spring-boot:run
+# or
+mvn spring-boot:run
+```
+### Step 4 — Verify it works
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- Example protected endpoint: use the `/api/v1/auth/authenticate` token then call `/api/v1/expenses`
+
+
+## 👤 Author
+Hamsa Hesham  
+- GitHub: https://github.com/hamsahesham66  
+- Email: h.hamssa66@gmail.com
